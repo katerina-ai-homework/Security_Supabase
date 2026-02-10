@@ -1,7 +1,7 @@
 /**
  * Supadata API Integration
  * 
- * Получение транскриптов YouTube видео с поддержкой асинхронных задач и поллинга.
+ * Получение транскриптов YouTube видео.
  * 
  * Vercel Best Practices Applied:
  * - async-parallel: Используем Promise.all() для независимых операций
@@ -12,16 +12,6 @@
 import axios, { AxiosInstance } from 'axios';
 
 // Типы для Supadata API
-export interface TranscriptTask {
-  id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  videoId: string;
-  createdAt: string;
-  completedAt?: string;
-  transcript?: string;
-  error?: string;
-}
-
 export interface VideoMetadata {
   title: string;
   channelName: string;
@@ -31,13 +21,10 @@ export interface VideoMetadata {
 
 // Конфигурация API
 const SUPADATA_API_BASE_URL = 'https://api.supadata.ai/v1';
-const POLLING_INTERVAL_MS = 2000; // 2 секунды между проверками
-const MAX_POLLING_ATTEMPTS = 60; // Максимум 2 минуты (60 * 2 сек)
 const REQUEST_TIMEOUT_MS = 30000; // 30 секунд таймаут для запросов
 
 // Endpoints
-const TRANSCRIPTS_ENDPOINT = '/youtube/transcripts';
-const TRANSCRIPT_STATUS_ENDPOINT = '/youtube/transcripts';
+const TRANSCRIPT_ENDPOINT = '/transcript';
 
 /**
  * Извлекает video ID из YouTube URL
@@ -81,129 +68,76 @@ function createSupadataClient(): AxiosInstance {
  * Vercel Best Practice: server-cache - кэшируем результаты для дедупликации
  */
 export async function getVideoMetadata(videoId: string): Promise<VideoMetadata> {
-  const client = createSupadataClient();
-
-  try {
-    const response = await client.get(`/videos/${videoId}/metadata`);
-    
-    return {
-      title: response.data.title || 'Неизвестное видео',
-      channelName: response.data.channelName || 'Неизвестный канал',
-      thumbnailUrl: response.data.thumbnailUrl || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-      videoId,
-    };
-  } catch (error) {
-    // Если API не поддерживает метаданные, возвращаем базовую информацию
-    return {
-      title: 'YouTube видео',
-      channelName: 'YouTube канал',
-      thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-      videoId,
-    };
-  }
-}
-
-/**
- * Создаёт задачу на получение транскрипта
- */
-export async function createTranscriptTask(videoId: string): Promise<string> {
-  const client = createSupadataClient();
-
-  try {
-    const response = await client.post(TRANSCRIPTS_ENDPOINT, {
-      url: `https://www.youtube.com/watch?v=${videoId}`,
-      language: 'auto', // Автоматическое определение языка
-      format: 'text', // Текстовый формат
-    });
-
-    return response.data.id || response.data.taskId;
-  } catch (error: any) {
-    if (error.response?.status === 429) {
-      throw new Error('Превышен лимит запросов к API. Пожалуйста, подождите несколько минут и попробуйте снова.');
-    }
-    throw error;
-  }
-}
-
-/**
- * Получает статус задачи по её ID
- */
-export async function getTaskStatus(taskId: string): Promise<TranscriptTask> {
-  const client = createSupadataClient();
-
-  const response = await client.get(`${TRANSCRIPT_STATUS_ENDPOINT}/${taskId}`);
-  
+  // Supadata API не предоставляет endpoint для метаданных
+  // Возвращаем базовую информацию на основе video ID
   return {
-    id: response.data.id || response.data.taskId,
-    status: response.data.status,
-    videoId: response.data.videoId,
-    createdAt: response.data.createdAt,
-    completedAt: response.data.completedAt,
-    transcript: response.data.transcript || response.data.text,
-    error: response.data.error,
+    title: 'YouTube видео',
+    channelName: 'YouTube канал',
+    thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    videoId,
   };
 }
 
 /**
- * Поллинг статуса задачи до завершения
+ * Получает транскрипт видео напрямую
  * Vercel Best Practice: async-parallel - запускаем промисы рано, await поздно
- */
-export async function pollTaskCompletion(
-  taskId: string,
-  onProgress?: (progress: number) => void
-): Promise<string> {
-  let attempts = 0;
-
-  while (attempts < MAX_POLLING_ATTEMPTS) {
-    const task = await getTaskStatus(taskId);
-
-    // Обновляем прогресс (0-100%)
-    if (onProgress) {
-      const progress = Math.min((attempts / MAX_POLLING_ATTEMPTS) * 100, 95);
-      onProgress(progress);
-    }
-
-    // Задача завершена успешно
-    if (task.status === 'completed' && task.transcript) {
-      if (onProgress) onProgress(100);
-      return task.transcript;
-    }
-
-    // Задача завершилась с ошибкой
-    if (task.status === 'failed') {
-      throw new Error(`Transcription failed: ${task.error || 'Unknown error'}`);
-    }
-
-    // Задача всё ещё обрабатывается - ждём и повторяем
-    attempts++;
-    
-    // Vercel Best Practice: js-early-exit - не ждём последнюю итерацию
-    if (attempts < MAX_POLLING_ATTEMPTS) {
-      await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL_MS));
-    }
-  }
-
-  throw new Error(`Transcription timeout after ${MAX_POLLING_ATTEMPTS} attempts`);
-}
-
-/**
- * Получает полный транскрипт видео (создаёт задачу и ждёт завершения)
- * Vercel Best Practice: async-parallel - параллельное выполнение независимых операций
  */
 export async function getTranscript(
   videoId: string,
   onProgress?: (progress: number) => void
 ): Promise<{ transcript: string; metadata: VideoMetadata }> {
-  // Vercel Best Practice: async-parallel - запускаем обе операции параллельно
-  const [taskId, metadata] = await Promise.all([
-    createTranscriptTask(videoId),
-    getVideoMetadata(videoId),
-  ]);
+  const client = createSupadataClient();
 
-  // Поллинг для получения транскрипта
-  const transcript = await pollTaskCompletion(taskId, onProgress);
+  // Обновляем прогресс
+  if (onProgress) onProgress(20);
 
-  return { transcript, metadata };
+  try {
+    // Получаем транскрипт напрямую
+    const response = await client.get(TRANSCRIPT_ENDPOINT, {
+      params: {
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+      },
+    });
+
+    // Обновляем прогресс
+    if (onProgress) onProgress(80);
+
+    // Парсим ответ API
+    const data = response.data;
+    
+    // Формируем текст транскрипта из массива content
+    let transcriptText = '';
+    if (data.content && Array.isArray(data.content)) {
+      transcriptText = data.content
+        .map((item: any) => item.text)
+        .filter((text: string) => text && !text.startsWith('[')) // Убираем музыкальные метки
+        .join(' ');
+    } else if (data.transcript) {
+      transcriptText = data.transcript;
+    } else if (data.text) {
+      transcriptText = data.text;
+    }
+
+    if (!transcriptText || transcriptText.trim().length === 0) {
+      throw new Error('Transcript is empty or not available');
+    }
+
+    // Получаем метаданные параллельно
+    const metadata = await getVideoMetadata(videoId);
+
+    // Обновляем прогресс
+    if (onProgress) onProgress(100);
+
+    return { transcript: transcriptText, metadata };
+  } catch (error: any) {
+    if (error.response?.status === 429) {
+      throw new Error('Превышен лимит запросов к API. Пожалуйста, подождите несколько минут и попробуйте снова.');
+    }
+    if (error.response?.status === 404) {
+      throw new Error('Транскрипт для этого видео не найден. Возможно, видео не имеет субтитров.');
+    }
+    throw error;
+  }
 }
 
 /**
