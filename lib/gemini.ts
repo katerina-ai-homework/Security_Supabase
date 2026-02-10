@@ -190,11 +190,23 @@ export function formatSummaryForApi(
   thumbnailUrl: string;
   sections: Array<{ title: string; points: string[] }>;
 } {
-  // Возвращаем только основные секции без TL;DR
+  // Создаём секцию с кратким содержанием если есть
+  const sections: Array<{ title: string; points: string[] }> = [];
+  
+  if (summary.tldr) {
+    sections.push({
+      title: 'Кратко',
+      points: [summary.tldr],
+    });
+  }
+  
+  // Добавляем остальные секции
+  sections.push(...summary.sections);
+  
   return {
     videoTitle: metadata.title,
     channelName: metadata.channelName,
     thumbnailUrl: metadata.thumbnailUrl,
-    sections: summary.sections,
+    sections,
   };
 }
