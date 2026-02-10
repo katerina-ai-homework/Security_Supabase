@@ -23,6 +23,20 @@ export interface SummaryResult {
 }
 
 /**
+ * Очищает текст от всех вхождений "TL;DR:" и подобных меток
+ */
+function cleanText(text: string): string {
+  return text
+    .replace(/TL;DR:?/gi, '')
+    .replace(/TLDR:?/gi, '')
+    .replace(/T L; D R:?/gi, '')
+    .replace(/T L D R:?/gi, '')
+    .replace(/T\.L\.;D\.R\.:?/gi, '')
+    .replace(/T\.L\.D\.R\.:?/gi, '')
+    .trim();
+}
+
+/**
  * Парсит ответ Gemini в структурированный формат
  */
 function parseGeminiResponse(response: string): SummaryResult {
@@ -42,7 +56,7 @@ function parseGeminiResponse(response: string): SummaryResult {
     if (trimmedLine.toLowerCase().startsWith('tl;dr') || 
         trimmedLine.toLowerCase().startsWith('кратко') ||
         trimmedLine.toLowerCase().startsWith('суть')) {
-      result.tldr = trimmedLine.replace(/^(TL;DR|Кратко|Суть)[:\s]*/i, '').trim();
+      result.tldr = cleanText(trimmedLine.replace(/^(TL;DR|Кратко|Суть)[:\s]*/i, '').trim());
       continue;
     }
 
@@ -55,7 +69,7 @@ function parseGeminiResponse(response: string): SummaryResult {
       
       // Создаём новую секцию
       currentSection = {
-        title: trimmedLine.replace(/^#+\s*|^\d+\.\s*/, '').trim(),
+        title: cleanText(trimmedLine.replace(/^#+\s*|^\d+\.\s*/, '').trim()),
         points: [],
       };
       continue;
@@ -63,7 +77,7 @@ function parseGeminiResponse(response: string): SummaryResult {
 
     // Маркированный список (-, *, •)
     if (/^[-*•]\s/.test(trimmedLine)) {
-      const point = trimmedLine.replace(/^[-*•]\s*/, '').trim();
+      const point = cleanText(trimmedLine.replace(/^[-*•]\s*/, '').trim());
       if (currentSection) {
         currentSection.points.push(point);
       } else {
@@ -78,13 +92,14 @@ function parseGeminiResponse(response: string): SummaryResult {
 
     // Если строка не пустая и не является заголовком/списком, добавляем как тезис
     if (trimmedLine && !trimmedLine.startsWith('#')) {
+      const cleanedLine = cleanText(trimmedLine);
       if (currentSection) {
-        currentSection.points.push(trimmedLine);
+        currentSection.points.push(cleanedLine);
       } else {
         // Создаём секцию для первого тезиса
         currentSection = {
           title: 'Основные тезисы',
-          points: [trimmedLine],
+          points: [cleanedLine],
         };
       }
     }
@@ -104,7 +119,7 @@ function parseGeminiResponse(response: string): SummaryResult {
   if (result.sections.length === 0 && lines.length > 0) {
     result.sections.push({
       title: 'Основные тезисы',
-      points: lines,
+      points: lines.map(line => cleanText(line)),
     });
   }
 
