@@ -190,23 +190,11 @@ export function formatSummaryForApi(
   thumbnailUrl: string;
   sections: Array<{ title: string; points: string[] }>;
 } {
-  // Создаём секцию TL;DR если есть
-  const sections: Array<{ title: string; points: string[] }> = [];
-  
-  if (summary.tldr) {
-    sections.push({
-      title: 'TL;DR',
-      points: [summary.tldr],
-    });
-  }
-  
-  // Добавляем остальные секции
-  sections.push(...summary.sections);
-  
+  // Возвращаем только основные секции без TL;DR
   return {
     videoTitle: metadata.title,
     channelName: metadata.channelName,
     thumbnailUrl: metadata.thumbnailUrl,
-    sections,
+    sections: summary.sections,
   };
 }

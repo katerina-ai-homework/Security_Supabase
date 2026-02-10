@@ -64,18 +64,6 @@ export function SummaryResult({
             alt={`Превью видео: ${videoTitle}`}
             className="absolute inset-0 h-full w-full object-cover"
           />
-          {/* Gradient overlay at bottom */}
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-foreground/60 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-semibold leading-snug text-card drop-shadow-sm line-clamp-2 md:text-xl">
-                {videoTitle}
-              </h2>
-              <p className="mt-1 text-sm text-card/80 drop-shadow-sm">
-                {channelName}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
