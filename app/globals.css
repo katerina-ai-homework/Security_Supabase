@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    /* Off-white background, dark charcoal text, tiffany accent */
+    --background: 210 20% 98%;
+    --foreground: 215 28% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --primary: 174 62% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 174 30% 93%;
+    --secondary-foreground: 215 28% 17%;
+    --muted: 210 16% 93%;
+    --muted-foreground: 215 14% 46%;
+    --accent: 174 62% 47%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 14 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 14% 89%;
+    --input: 214 14% 89%;
+    --ring: 174 62% 47%;
+    --tiffany: 174 62% 47%;
+    --tiffany-dark: 174 62% 38%;
+    --tiffany-deeper: 174 70% 22%;
+    --tiffany-light: 174 40% 90%;
+    --chart-1: 217 91% 53%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
