@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Check, Copy, Share2 } from "lucide-react"
+import { Check, Copy } from "lucide-react"
 
 interface SummarySection {
   title: string
@@ -33,25 +33,6 @@ export function SummaryResult({
     navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleShare = async () => {
-    const text = sections
-      .map((s) => `${s.title}\n${s.points.map((p) => `— ${p}`).join("\n")}`)
-      .join("\n\n")
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: videoTitle,
-          text,
-        })
-      } catch {
-        // User cancelled share
-      }
-    } else {
-      handleCopy()
-    }
   }
 
   return (
@@ -92,6 +73,25 @@ export function SummaryResult({
         ))}
       </article>
 
+      {/* Funny Cat with Philactor */}
+      <div className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-tiffany/30 bg-gradient-to-br from-tiffany-light/10 to-transparent p-8">
+        <div className="relative">
+          <img
+            src="https://placekitten.com/200/200"
+            alt="Смешной кот"
+            className="h-48 w-48 rounded-full border-4 border-tiffany shadow-lg"
+          />
+          <div className="absolute -bottom-2 -right-2 rounded-full bg-tiffany px-4 py-2 text-sm font-bold text-white shadow-lg">
+            🎉
+          </div>
+        </div>
+        <div className="rounded-xl bg-white px-6 py-3 shadow-md">
+          <p className="text-center text-lg font-bold text-tiffany-dark">
+            Ура! Я сделал домашку!
+          </p>
+        </div>
+      </div>
+
       {/* Footer Actions */}
       <div className="mt-10 flex items-center gap-3 border-t border-border pt-6">
         <Button
@@ -105,14 +105,6 @@ export function SummaryResult({
             <Copy className="h-4 w-4" />
           )}
           {copied ? "Скопировано" : "Копировать текст"}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={handleShare}
-          className="gap-2 rounded-xl border-tiffany/30 bg-transparent text-tiffany-dark hover:bg-tiffany-light hover:text-tiffany-dark"
-        >
-          <Share2 className="h-4 w-4" />
-          Поделиться
         </Button>
       </div>
     </div>
