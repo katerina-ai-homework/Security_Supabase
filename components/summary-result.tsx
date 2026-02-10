@@ -77,9 +77,9 @@ export function SummaryResult({
       <div className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-tiffany/30 bg-gradient-to-br from-tiffany-light/10 to-transparent p-8">
         <div className="relative">
           <img
-            src="https://placekitten.com/200/200"
+            src="/Simon-Cat.jpg"
             alt="Смешной кот"
-            className="h-48 w-48 rounded-full border-4 border-tiffany shadow-lg"
+            className="h-48 w-48 rounded-full border-4 border-tiffany shadow-lg object-cover"
           />
           <div className="absolute -bottom-2 -right-2 rounded-full bg-tiffany px-4 py-2 text-sm font-bold text-white shadow-lg">
             🎉
