@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, Copy, Play } from "lucide-react"
+import { Check, Copy } from "lucide-react"
 
 interface SummarySection {
   title: string
@@ -45,14 +45,6 @@ export function SummaryResult({
             alt={`Превью видео: ${videoTitle}`}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          {/* Play button overlay */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-              <Play className="ml-1 h-6 w-6 fill-tiffany text-tiffany" />
-            </div>
-          </div>
-          {/* Gradient overlay at bottom */}
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         </div>
         {/* Decorative corner accents */}
         <div className="absolute left-0 top-0 h-8 w-8 border-l-2 border-t-2 border-tiffany/40 rounded-tl-2xl" />
